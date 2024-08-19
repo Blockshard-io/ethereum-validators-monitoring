@@ -1,4 +1,4 @@
-import { plainToInstance, Expose, Transform } from 'class-transformer';
+import { Expose, Transform, plainToInstance } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
@@ -17,6 +17,7 @@ import {
   ValidateIf,
   validateSync,
 } from 'class-validator';
+
 import { Epoch } from 'common/consensus-provider/types';
 
 import { Environment, LogFormat, LogLevel } from './interfaces';
@@ -25,7 +26,6 @@ export enum Network {
   Mainnet = 1,
   Goerli = 5,
   Holesky = 17000,
-  Kintsugi = 1337702,
 }
 
 export enum ValidatorRegistrySource {
@@ -40,10 +40,7 @@ export enum WorkingMode {
 }
 
 const dencunForkEpoch = {
-  /**
-   * @todo This should be corrected once the particular epoch of the Dencun hard fork on Mainnet is known.
-   */
-  '1': 300000,
+  '1': 269568,
   '5': 231680,
   '17000': 29696,
 };
@@ -137,7 +134,6 @@ export class EnvironmentVariables {
   @Min(1)
   @Max(5000000)
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
-  @ValidateIf((vars) => vars.VALIDATOR_REGISTRY_SOURCE == ValidatorRegistrySource.Lido && vars.NODE_ENV != Environment.test)
   public ETH_NETWORK!: Network;
 
   @IsArray()
@@ -182,7 +178,6 @@ export class EnvironmentVariables {
     ({ value, obj }) =>
       dencunForkEpoch[obj.ETH_NETWORK] || (value != null && value.trim() !== '' ? parseInt(value, 10) : Number.MAX_SAFE_INTEGER),
   )
-  @ValidateIf((vars) => vars.NODE_ENV !== Environment.test)
   public DENCUN_FORK_EPOCH: Epoch;
 
   @IsNumber()
